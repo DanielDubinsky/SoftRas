@@ -88,9 +88,9 @@ at::Tensor create_texture_image_cuda(
 
     AT_DISPATCH_FLOATING_TYPES(image.type(), "create_texture_image_cuda", ([&] {
       create_texture_image_cuda_kernel<scalar_t><<<blocks, threads>>>(
-          faces.data<scalar_t>(),
-          textures.data<scalar_t>(),
-          image.data<scalar_t>(),
+          faces.data_ptr<scalar_t>(),
+          textures.data_ptr<scalar_t>(),
+          image.data_ptr<scalar_t>(),
           image_size,
           num_faces,
           texture_res_in,

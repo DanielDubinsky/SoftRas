@@ -203,8 +203,8 @@ std::vector<at::Tensor> voxelize_sub1_cuda(
 
     AT_DISPATCH_FLOATING_TYPES(faces.type(), "voxelize_sub1_cuda", ([&] {
       voxelize_sub1_kernel<scalar_t><<<blocks, threads>>>(
-          faces.data<scalar_t>(),
-          voxels.data<int32_t>(),
+          faces.data_ptr<scalar_t>(),
+          voxels.data_ptr<int32_t>(),
           batch_size,
           num_faces,
           voxel_size);
@@ -231,8 +231,8 @@ std::vector<at::Tensor> voxelize_sub2_cuda(
 
     AT_DISPATCH_FLOATING_TYPES(faces.type(), "voxelize_sub2_cuda", ([&] {
       voxelize_sub2_kernel<scalar_t><<<blocks, threads>>>(
-          faces.data<scalar_t>(),
-          voxels.data<int32_t>(),
+          faces.data_ptr<scalar_t>(),
+          voxels.data_ptr<int32_t>(),
           batch_size,
           num_faces,
           voxel_size);
@@ -257,8 +257,8 @@ std::vector<at::Tensor> voxelize_sub3_cuda(
 
     AT_DISPATCH_FLOATING_TYPES(faces.type(), "voxelize_sub3_cuda", ([&] {
       voxelize_sub3_kernel<scalar_t><<<blocks, threads>>>(
-          voxels.data<int32_t>(),
-          visible.data<int32_t>(),
+          voxels.data_ptr<int32_t>(),
+          visible.data_ptr<int32_t>(),
           batch_size,
           voxel_size);
       }));
@@ -282,8 +282,8 @@ std::vector<at::Tensor> voxelize_sub4_cuda(
 
     AT_DISPATCH_FLOATING_TYPES(faces.type(), "voxelize_sub4_cuda", ([&] {
       voxelize_sub4_kernel<scalar_t><<<blocks, threads>>>(
-          voxels.data<int32_t>(),
-          visible.data<int32_t>(),
+          voxels.data_ptr<int32_t>(),
+          visible.data_ptr<int32_t>(),
           batch_size,
           voxel_size);
       }));
