@@ -46,9 +46,7 @@ class ShapeNet(object):
             self.num_data[class_id] = images[-1].shape[0]
             self.pos[class_id] = count
             count += self.num_data[class_id]
-        images = np.concatenate(images, axis=0).reshape((-1, 4, 64, 64))
-        images = np.ascontiguousarray(images)
-        self.images = images
+        self.images = list(map(lambda x: np.ascontiguousarray(x), images))
         self.voxels = np.ascontiguousarray(np.concatenate(voxels, axis=0))
         del images
         del voxels
@@ -63,21 +61,23 @@ class ShapeNet(object):
         data_ids_b = np.zeros(batch_size, 'int32')
         viewpoint_ids_a = torch.zeros(batch_size)
         viewpoint_ids_b = torch.zeros(batch_size)
+
+        batch_a = []
+        batch_b = []
         for i in range(batch_size):
-            class_id = np.random.choice(self.class_ids)
+            class_idx = np.random.randint(0, len(self.class_ids))
+            class_id = self.class_ids[class_idx]
             object_id = np.random.randint(0, self.num_data[class_id])
 
             viewpoint_id_a = np.random.randint(0, 24)
             viewpoint_id_b = np.random.randint(0, 24)
-            data_id_a = (object_id + self.pos[class_id]) * 24 + viewpoint_id_a
-            data_id_b = (object_id + self.pos[class_id]) * 24 + viewpoint_id_b
-            data_ids_a[i] = data_id_a
-            data_ids_b[i] = data_id_b
+            batch_a.append(self.images[class_idx][object_id, viewpoint_id_a])
+            batch_b.append(self.images[class_idx][object_id, viewpoint_id_b])
             viewpoint_ids_a[i] = viewpoint_id_a
             viewpoint_ids_b[i] = viewpoint_id_b
 
-        images_a = torch.from_numpy(self.images[data_ids_a].astype('float32') / 255.)
-        images_b = torch.from_numpy(self.images[data_ids_b].astype('float32') / 255.)
+        images_a = torch.from_numpy(np.stack(batch_a).astype('float32') / 255.)
+        images_b = torch.from_numpy(np.stack(batch_b).astype('float32') / 255.)
 
         distances = torch.ones(batch_size).float() * self.distance
         elevations_a = torch.ones(batch_size).float() * self.elevation
