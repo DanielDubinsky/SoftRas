@@ -2,12 +2,11 @@ import argparse
 
 import torch
 import numpy as np
-from losses import multiview_iou_loss
+from losses import multiview_loss, fscore_loss, iou_loss
 from utils import AverageMeter, img_cvt
-import soft_renderer as sr
 import soft_renderer.functional as srf
-import datasets
-import models
+import datasets as datasets
+import models as models
 import imageio
 import time
 import os
@@ -35,6 +34,7 @@ DATASET_DIRECTORY = 'data/datasets'
 IMAGE_SIZE = 64
 SIGMA_VAL = 1e-4
 START_ITERATION = 0
+LOSS_FUNC=iou_loss
 
 RESUME_PATH = ''
 
@@ -52,6 +52,7 @@ parser.add_argument('-sv', '--sigma-val', type=float, default=SIGMA_VAL)
 
 parser.add_argument('-lr', '--learning-rate', type=float, default=LEARNING_RATE)
 parser.add_argument('-lrt', '--lr-type', type=str, default=LR_TYPE)
+parser.add_argument('-loss', '--loss-func', type=str, default='iou_loss')
 
 parser.add_argument('-ll', '--lambda-laplacian', type=float, default=LAMBDA_LAPLACIAN)
 parser.add_argument('-lf', '--lambda-flatten', type=float, default=LAMBDA_FLATTEN)
@@ -88,6 +89,9 @@ if args.resume_path:
     
 dataset_train = datasets.ShapeNet(args.dataset_directory, args.class_ids.split(','), 'train')
 
+if args.loss_func:
+    LOSS_FUNC = eval(args.loss_func)
+
 def train():
     end = time.time()
     batch_time = AverageMeter()
@@ -114,7 +118,7 @@ def train():
         flatten_loss = flatten_loss.mean()
 
         # compute loss
-        loss = multiview_iou_loss(render_images, images_a, images_b) + \
+        loss = multiview_loss(render_images, images_a, images_b, LOSS_FUNC) + \
                args.lambda_laplacian * laplacian_loss + \
                args.lambda_flatten * flatten_loss
         losses.update(loss.data.item(), images_a.size(0))
